@@ -1,0 +1,183 @@
+class DirectionModel:
+    """
+        方向数据模型
+        枚举  常量(命名全部大写)
+    """
+    # 在整数基础上，添加一个人容易识别的"标签"
+    UP = 0
+    DOWN = 1
+    LEFT = 2
+    RIGHT = 3
+
+
+class Location:
+    """
+    位置数据
+    """
+    def __init__(self,r,c):
+        self.r_index=r
+        self.c_index=c
+
+
+class GameCoreController:
+    """
+    游戏逻辑控制器，负责处理游戏核心算法
+    """
+    def __init__(self):
+        self.__list_merge = None
+        self.__map = [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],]
+        self.__empty_location=[]
+        
+    @property
+    def map(self):
+        return self.__map
+
+    def __zero_to_end(self):
+        """
+            零元素移动到末尾.
+        """
+        for i in range(-1, -len(self.__list_merge) - 1, -1):
+            if self.__list_merge[i] == 0:
+                del self.__list_merge[i]
+                self.__list_merge.append(0)
+
+    def __merge(self):
+        """
+            同列或同行的数字合并
+        """
+        self.__zero_to_end()
+
+        for i in range(len(self.__list_merge) - 1):
+            if self.__list_merge[i] == self.__list_merge[i + 1]:
+                self.__list_merge[i] += self.__list_merge[i + 1]
+                del self.__list_merge[i + 1]
+                self.__list_merge.append(0)
+
+    def __move_left(self):
+        """
+            向左移动
+        """
+        for line in self.__map:
+            self.__list_merge = line
+            self.__merge()
+
+    def __move_right(self):
+        """
+            向右移动
+        """
+        for line in self.__map:
+            self.__list_merge = line[::-1]
+            self.__merge()
+            line[::-1] = self.__list_merge
+
+    def __move_up(self):
+        self.__square_matrix_transpose()
+        self.__move_left()
+        self.__square_matrix_transpose()
+
+    def __move_down(self):
+        self.__square_matrix_transpose()
+        self.__move_right()
+        self.__square_matrix_transpose()
+
+    def __square_matrix_transpose(self):
+        """
+            方阵转置
+        """
+        for c in range(1, len(self.__map)):
+            for r in range(c, len(self.__map)):
+                self.__map[r][c - 1], self.__map[c - 1][r] = self.__map[c - 1][r], self.__map[r][c - 1]
+
+    def move(self, dir):
+        """
+            移动
+        :param dir: 方向,DirectionModel类型
+        """
+        if dir == DirectionModel.UP:
+            self.__move_up()
+        elif dir == DirectionModel.DOWN:
+            self.__move_down()
+        elif dir == DirectionModel.LEFT:
+            self.__move_left()
+        elif dir == DirectionModel.RIGHT:
+            self.__move_right()
+
+    def generate_new_number(self):
+        """
+        生成新数字
+        """
+        self.get_empty_location()
+        if len(self.__empty_location)==0:
+            return False
+        loc=random.choice(self.__empty_location)#(随机选择一个空位置)
+        self.__map[loc.r_index][loc.c_index]=4 if random.randint(1,10)==1 else 2
+        self.__empty_location.remove(loc)
+
+
+    def get_empty_location(self):
+        """
+        找到所有空位置（0元素位置）
+        """
+        for r in range(len(self.__map)):
+            for c in range(len(self.__map)):
+                if self.__map[r][c]==0:
+                    self.__empty_location.append(Location(r,c))#(空位置元组记录)
+
+    def is_game_over(self):
+        if len(self.__empty_location)>0:
+            return False
+        for r in range(len(self.__map)):
+            for c in range(len(self.__map[r])-1):
+                if self.__map[r][c]==self.__map[r][c+1] or self.__map[c][r]==self.__map[c+1][r]:
+                    return False
+        return True
+
+
+class GameConsoleView:
+    """
+        界面处理
+    """
+    def __init__(self):
+        self.__controller=GameCoreController()
+
+    def __start(self):
+        self.__controller.generate_new_number()
+        self.__controller.generate_new_number()#生成两个数字
+        self.__draw_map()#绘制画面
+
+    def __draw_map(self):
+        """
+        绘制画面
+        """
+        os.system("clear")#清空控制台
+        for r in self.__controller.map:
+            for c in r:
+                print(c,end=" ")
+            print()
+
+    def main(self):
+        self.__start()
+        self.__update()
+
+    def __move_map_for_input(self):
+        dir=input("输入方向（wasd）")#判断玩家输入方向
+        dict_dir={"w":DirectionModel.UP,
+                  "a":DirectionModel.LEFT,
+                  "s":DirectionModel.DOWN,
+                  "d":DirectionModel.RIGHT}
+        if dir in dict_dir:
+            self.__controller.move(dict_dir[dir])#根据输入调用移动
+
+    def __update(self):
+        while True:
+            self.__move_map_for_input() #重复移动
+            self.__controller.generate_new_number() #生成新数字
+            self.__draw_map() #绘制画面
+            if self.__controller.is_game_over():
+                print("游戏结束")
+                break#判断游戏是否结束
+
