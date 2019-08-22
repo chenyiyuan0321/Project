@@ -1,2 +1,2 @@
-# Project
-## 2048游戏算法
+# Note
+## python note
