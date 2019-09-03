@@ -1,0 +1,12 @@
+##mysql数据类型##
+1、数值类型
+2、字符类型
+3、枚举类型
+4、日期时间类型
+
+##redis数据类型##
+1、字符串（get、set、mget、mset、strlen、decr、incr、decrby、incrby、incrbyfloat）
+2、列表（lpush、rpush、lpop、rpop、blpop、brpop、lrem、linser、llen、ltrim、lindex、lrange）
+3、哈希（散列）
+4、集合
+5、有序集合-redis特有
