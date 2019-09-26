@@ -1,0 +1,299 @@
+##请求数据：
+from request_html import HTMLSession
+session = HTMLSession
+url = 'https://www.baidu.com/'
+# get：
+r = session.get(url=url)
+# post:
+r = session.post(url=url)
+# request
+r = session.request(method='get'/'post'， url=url)
+
+##HTML对象属性：
+from requests_html import HTMLSession
+session = HTMLSession()
+url = 'https://www.zhihu.com/'
+response = session.get(url=url)
+response的属性
+print(response)
+print(type(response))
+～ <Response [200]>
+～ <class 'requests_html.HTMLResponse'>
+print(dir(response))
+～['__attrs__', '__bool__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__enter__', '__eq__', '__exit__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__nonzero__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__setstate__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', '_content', '_content_consumed', '_from_response', '_html', '_next', 'apparent_encoding', 'close', 'connection', 'content', 'cookies', 'elapsed', 'encoding', 'headers', 'history', 'html', 'is_permanent_redirect', 'is_redirect', 'iter_content', 'iter_lines', 'json', 'links', 'next', 'ok', 'raise_for_status', 'raw', 'reason', 'request', 'session', 'status_code', 'text', 'url']
+
+##响应：
+response.url: 当前路径
+response.text： 文本
+response.encoding = 'gbk'：编码
+response.content： 二进制的响应内容
+response.json ==>json.loads(r.text)
+response.status_code: 返回状态码
+response.headers： 返回响应头
+response.cookies： 返回cookies
+response.history： 返回响应历史
+
+##.html
+print(response.html)
+# <HTML url='https://www.zhihu.com/signin?next=%2F'>
+In [18]: type(res.html)
+Out[18]: requests_html.HTML
+#reponse 和 response_html模块自己实现的类
+print(dir(response.html))
+```
+['__aiter__', '__anext__', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', 
+'__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__',
+'__module__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__',
+'__str__', '__subclasshook__', '__weakref__', '_async_render', '_encoding', '_html', '_lxml', '_make_absolute', '_pq',
+'absolute_links', 'add_next_symbol', 'arender', 'base_url', 'default_encoding', 'element', 'encoding', 'find', 'full_text',
+'html', 'links', 'lxml', 'next', 'next_symbol', 'page', 'pq', 'raw_html', 'render', 'search', 'search_all', 'session',
+'skip_anchors', 'text', 'url', 'xpath']
+```
+##html对象属性
+response.html.absolute_links: 绝对链接
+response.links:相对链接
+response.base_url: 基本路径
+response.html.html: 网页源码
+response.html.text: 网页文本
+response.html.encoding = 'gbk'
+response.html.raw_html:页面的二进制流
+
+##html对象方法：
+find：
+参数
+:param selector: css 选择器
+:param clean: 是否去除页面中的<scpript>和<style>标签，默认False
+:param containing:如果指定有值，只返回包含所给文本的Element对象,默认False
+:param first: 是否返回第一个对象,默认False
+:param _encoding: 字符编码
+返回结果
+
+[Element,Element……] 
+当First为True的时候，只返回第一个Element
+search:
+response.html.search(XXXX{}YYYY)[0] # 搜索一次
+response.html.search(XXXX{name}YYY{pwd}ZZZ)[name] #只搜索一次
+seach_all:
+查找所有符合template对象，返回的是result对象组成的list
+Element对象：
+```
+'absolute_links', 'attrs', 'base_url', 'default_encoding', 'element', 'encoding', 'find', 'full_text', 'html', 
+'lineno', 'links', 'lxml', 'pq', 'raw_html', 'search', 'search_all', 'session', 'skip_anchors', 'tag', 'text', 
+'url', 'xpath'
+```
+text:
+去掉\r\n 之后的文本
+full_text:
+没有去掉\r\n之后的文本值
+attrs:
+返回以字典形式Element对象的属性和属性名
+
+#render方法：
+1、手动安装chromium，然后再指定程序里面的executablePath
+
+# 于requests-html源代码在714行中加入
+executablePath=’path/to/the/chromium‘ 
+2、
+
+from requests_html import HTMLSession
+
+url  = 'https://httpbin.org/get'
+
+session = HTMLSession()
+res = session.get(url = url)
+res.html.render()
+print(res.html.html)
+3、在输入navigator.userAgent 就可以看到浏览器的请求头，把他复制到--user-agent之后，
+
+注意不要有空格。 --nosand 是以最高权限
+
+url  = 'https://httpbin.org/get'
+
+session = HTMLSession(
+            browser.args = [
+                '--no-sand', 
+                '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"'
+            ])
+res = session.get(url = url)
+res.html.render()
+print(res.html.html)
+启动参数：
+kwargs = {
+        'headless': False,
+         'devtools': False, // 打开开发者工具
+         'ignoreDefaultArgs':  // 忽略默认配置
+         'userDataDir' :'./userdata', //设置用户目录，保存cookie
+            'args': [
+                '--disable-extensions',
+                '--window-size={width},{height}',
+                '--hide-scrollbars',
+                '--disable-bundled-ppapi-flash',
+                '--mute-audio', //页面静音
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-gpu',
+                '--enable-automation',
+               
+            ],
+        'dumpio': True,
+    }
+render的参数：
+retries 重试次数，默认为8，
+script，JS 脚本，可选参数，默认为None,str类型，如果有值，返回JS执行脚本的返回值
+wait 加载页面前等待的秒数，防止超时，默认0.2秒，可选参数，浮点型
+scrolldown，页面滚动次数，整数，默认为0,
+sleep, 首次渲染之后暂停的秒数，接收整数，可选类型，默认为0
+reload 默认为True,如果为False,如果为False,就会从内存中加载内容
+keep_page,默认为False,如果为True，就可以通过r.html.page和页面进行交互
+js注入实例1：
+script = """
+                () => {
+                    return {
+                        width: document.documentElement.clientWidth,
+                        height: document.documentElement.clientHeight,
+                        deviceScaleFactor: window.devicePixelRatio,
+                    }
+                }
+                """
+
+
+from requests_html import HTMLSession
+
+url  = 'https://httpbin.org/get'
+
+session = HTMLSession(
+    browser_args=[
+                '--no-sand',
+                '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"'
+            ]
+)
+res = session.get(url = url)
+
+r = res.html.render(script=script)
+print(r)
+js注入实例2 更改navigator.webdriver：
+'''() =>{
+    
+           Object.defineProperties(navigator,{
+             webdriver:{
+               get: () => undefined
+             }
+           })
+        }'''
+
+
+与浏览器进行交互
+page.screenshot([options])
+- options `<object>` 可选配置 
+    - path `<string>` 截图保存路径。截图图片类型将从文件扩展名推断出来。如果是相对路径，则从当前路径解析。如果没有指定路径，图片将不会保存到硬盘。
+    - type `<string>` 指定截图类型, 可以是 jpeg 或者 png。默认 'png'.
+    - quality `<number>` 图片质量, 可选值 0-100. png 类型不适用。
+    - fullPage <boolean> 如果设置为true，则对完整的页面（需要滚动的部分也包含在内）。默认是false
+    - clip `<object>` 指定裁剪区域。需要配置：
+        - x `<number>` 裁剪区域相对于左上角（0， 0）的x坐标
+        - y `<number>` 裁剪区域相对于左上角（0， 0）的y坐标
+        - width `<number>` 裁剪的宽度
+        - height `<number>` 裁剪的高度
+    - omitBackground <boolean> 隐藏默认的白色背景，背景透明。默认不透明
+    - encoding `<string>` 图像的编码可以是 base64 或 binary 默认为二进制
+截图实例：
+import asyncio
+from requests_html import HTMLSession
+url  = 'https://httpbin.org/get'
+session = HTMLSession(
+    browser_args=[
+                '--no-sand',
+                '--user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"'
+            ]
+)
+res = session.get(url = url)
+script = """
+                () => {
+                    return {
+                        width: document.documentElement.clientWidth,
+                        height: document.documentElement.clientHeight,
+                        deviceScaleFactor: window.devicePixelRatio,
+                    }
+                }
+               """
+try:
+    res.html.render(script=script,sleep = 1,keep_page = True)
+    async def main():
+        await res.html.page.screenshot({'path':'1.png'}) # 传入参数用字典path 代表路径 值为你要存放的路径
+
+    asyncio.get_event_loop().run_until_complete(main())
+finally:
+    session.close()
+page.evaluate(pageFunction[, ...args])
+pagFunction(function/string): 要在页面实例上文中执行的方法
+js1 = '''() =>{
+    
+           Object.defineProperties(navigator,{
+             webdriver:{
+               get: () => undefined
+             }
+           })
+        }'''
+
+js4 = '''() =>{Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});
+        }'''
+await page.evaluate(js1) ## 更改webdriver
+await page.evaluate(js4) ##更改语言
+page.setViewport()
+设置页面大小：
+page.setViewport({'width':1336,'height':768})
+page.cookie()
+如果不指定任何url,此方法返回当前页面域名的cookie。如果指定了url，只能返回指定的cookie
+
+page.type(selector, text[, options])
+selector `<string>` 要输入内容的元素选择器。如果有多个匹配的元素，输入到第一个匹配的元素。
+- text `<string>` 要输入的内容
+- options `<object>`
+    - delay `<number>` 每个字符的延时。单位是毫秒，默认是0
+page.click(selector[, options])
+selector <string> 要给焦点的元素的选择器selector。如果有多个匹配的元素，焦点给第一个元素
+page.hover(selector)
+selector<string>: 要hover的元素的选择器。如果匹配多个，hover第一个
+page.waitFor(selectorOrFunctionOrTimeout[, options[, ...args]])
+- selectorOrFunctionOrTimeout <string|number|function> 选择器, 方法 或者 超时时间
+- options `<object>` 可选的等待参数
+    ...args <...Serializable|JSHandle> 传给 pageFunction 的参数
+如果 selectorOrFunctionOrTimeout 是 string, 那么认为是 css 选择器或者一个xpath, 根据是不是'//'开头, 这时候此方法是 page.waitForSelector 或 page.waitForXPath的简写
+如果 selectorOrFunctionOrTimeout 是 function, 那么认为是一个predicate，这时候此方法是page.waitForFunction()的简写
+如果 selectorOrFunctionOrTimeout 是 number, 那么认为是超时时间，单位是毫秒，返回的是Promise对象,在指定时间后resolve
+否则会报错
+
+##键盘事件：
+详细的键盘键名语法
+语法：
+res.html.page.keyboard.XXX
+keyboard.down(key[, options])
+key <string> 按下的键名, 比如 ArrowLeft. 一个包含所有键名的列表见 USKeyboardLayout.-
+options <object> - text <string> 如果指定，则使用此文本生成输入事件.
+keyboard.up(key)
+key <string> 要释放的键的键名, 例如 ArrowLeft
+keyboard.press(key[, options])
+key <string> 按下的键名, 比如 ArrowLeft.
+options <object> - text <string> 如果指定，则使用此文本生成输入事件。 - delay <number>在 keydown 和 keyup 间隔的时间, 以毫秒为单位. 默认为 0。
+keyboard.type(text, options)
+text <string> 要输入到焦点元素中的文本。
+options <object> - delay <number> 按键间隔的时间, 以毫秒为单位. 默认为 0。
+      page.keyboardtype('喜欢你啊'，{‘delay’:100})
+      
+##鼠标事件
+r.html.page.mouse.XXX
+mouse.click(x, y, [options])
+x <number>
+y <number>
+options <object>
+button <string> left ，right 或 middle，默认是 left。
+clickCount <number> 默认是 1。见 UIEvent.detail。
+delay <number> 在毫秒内且在 mousedown 和 mouseup 之间等待的时间。 默认为0。
+mouse.down([options])
+options <object>
+button <string> left，right 或 middle，默认是 left。
+clickCount <number> 默认是 1。
+mouse.up([options])
+options <object>
+button <string> left，right，或 middle，默认是 left。
+clickCount <number> 默认是 1。
