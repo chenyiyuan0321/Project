@@ -1,0 +1,67 @@
+import requests
+import random
+import time
+from lxml import etree
+
+class IpSpider():
+
+    def __init__(self):
+        self.url='https://www.kuaidaili.com/free/inha/{}'
+        self.ua_list = [
+            'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/535.1 (KHTML, like Gecko) Chrome/14.0.835.163 Safari/535.1',
+            'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0) Gecko/20100101 Firefox/6.0',
+            'Opera/9.80 (Windows NT 6.1; U; zh-cn) Presto/2.9.168 Version/11.50',
+            'Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1)',
+            'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; GTB7.0)',
+            'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; WOW64; Trident/5.0)'
+        ]
+
+    def get_html(self,url):
+        #获取页面内容
+        headers={'User-Agent':random.choice(self.ua_list)}
+        res=requests.get(url=url,headers=headers)
+        html=res.text
+        return html
+
+    def parse_html(self,url):
+        #解析页面，提取IP
+        html=self.get_html(url)
+        parse_obj=etree.HTML(html)
+        res_ip_list=parse_obj.xpath("//tbody/tr/td[@data-title='IP']/text()")
+        res_port_list = parse_obj.xpath("//tbody/tr/td[@data-title='PORT']/text()")
+        link='http://www.baidu.com'
+        for i in range(0,len(res_ip_list)):
+            ip='http://{}:{}'.format(res_ip_list[i],res_port_list[i])
+            ips='https://{}:{}'.format(res_ip_list[i],res_port_list[i])
+            proxies = {
+                'http': ip,
+                'https': ips,
+            }
+            #测试提取的IP是否可用
+            try:
+                html = requests.get(url=link, proxies=proxies,timeout=3)
+                if html.status_code==200:
+                    #保存可用IP
+                    ip_in_use=res_ip_list[i]+':'+res_port_list[i]
+                    self.write_res(ip_in_use)
+            except Exception as e:
+                continue
+
+    def write_res(self,ip):
+        #一行一个IP，写入文件
+        proxies=ip+'\r\n'
+        with open('ip.txt','a') as f:
+            f.write(proxies)
+        print(proxies)
+
+    def run(self):
+        for i in range(1,1000):
+            print(i)
+            url=self.url.format(i)
+            self.parse_html(url)
+            time.sleep(random.randint(1,3))
+
+
+if __name__=='__main__':
+    spider=IpSpider()
+    spider.run()
